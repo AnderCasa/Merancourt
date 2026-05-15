@@ -22,59 +22,42 @@
         <div style="background-color: #ebf7ee; padding: 15px; border-radius: 10px; margin: 25px 0;">
             <h2 id="prix-produit" style="font-size: 45px; color: #27ae60; margin: 0;">-</h2>
         </div>
-    <script>
-        // KOPYE EPI KOLE LYEN .CSV GOOGLE SHEET PA W LAN LA NAN MITAN APWOSTWOF YO:
-        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2w9MwD4sl9HUEAGulTEoerDOV6pKirCs_-6flmYaa_dR-pEZ0A97m_dS8hKNWSgbMWoSZASpJGZA/pub?output=csv';
+        <script>
+    // 1. Mete lyen pa w la la a
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2w9MwD4sl9HUEAGulTEoerDOV6pKirCs_-6flmYaa_dR-pEZ0A97m_dS8hKNWSgbMWoSZASpJGZA/pub?output=csv';
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const barcodeParam = urlParams.get('code');
 
-        // Rekipere kòd ba ki nan URL la
-        const urlParams = new URLSearchParams(window.location.search);
-        const barcodeParam = urlParams.get('code');
+    if (barcodeParam) {
+        // 2. TEKNIK CACHE-BUSTING: Nou ajoute yon "timestamp" inik nan lyen an
+        // Sa fòse Google Sheets voye vèsyon ki pi fre a nèt.
+        const cacheBuster = "&t=" + new Date().getTime();
+        const finalUrl = GOOGLE_SHEET_CSV_URL + cacheBuster;
 
-        if (!barcodeParam) {
-            document.getElementById('nom-produit').innerText = "Kòd manke nan lyen an";
-            document.getElementById('prix-produit').innerText = "Erè";
-            document.getElementById('prix-produit').style.color = "red";
-        } else {
-            // Al chache done yo an dirèk nan Google Sheet la
-            fetch(GOOGLE_SHEET_CSV_URL)
-                .then(response => response.text())
-                .then(csvText => {
-                    const lines = csvText.split('\n');
-                    let produitTrouve = null;
+        fetch(finalUrl, { cache: "no-store" }) // Nou di fetch la pa sere anyen
+            .then(res => res.text())
+            .then(data => {
+                const rows = data.split('\n').map(r => r.replace(/"/g, '').split(','));
+                const p = rows.find(r => r[0]?.trim() === barcodeParam.trim());
 
-                    // Sote premye liy lan (tèt kolòn yo), kòmanse nan i = 1
-                    for (let i = 1; i < lines.length; i++) {
-                        // Netwaye liy lan pou evite pwoblèm gilmè (quotes) Google mete yo
-                        const row = lines[i].replace(/"/g, '').split(',');
-                        
-                        if (row.length >= 3) {
-                            const currentBarcode = row[0].trim();
-                            if (currentBarcode === barcodeParam.trim()) {
-                                produitTrouve = {
-                                    nom: row[1].trim(),
-                                    prix: row[2].trim()
-                                };
-                                break;
-                            }
-                        }
-                    }
-
-                    // Afiche rezilta a
-                    if (produitTrouve) {
-                        document.getElementById('nom-produit').innerText = produitTrouve.nom;
-                        document.getElementById('kod-produit').innerText = "Kòd: " + barcodeParam;
-                        document.getElementById('prix-produit').innerText = produitTrouve.prix;
-                    } else {
-                        document.getElementById('nom-produit').innerText = "Pwodwi sa a pa egziste";
-                        document.getElementById('prix-produit').innerText = "N/A";
-                        document.getElementById('prix-produit').style.color = "red";
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('nom-produit').innerText = "Erè Koneksyon Sèvè";
-                    console.error(err);
-                });
-        }
-    </script>
+                if (p) {
+                    document.getElementById('nom-produit').innerText = p[1].trim();
+                    document.getElementById('kod-produit').innerText = "Kòd: " + barcodeParam;
+                    document.getElementById('prix-produit').innerText = p[2].trim();
+                } else {
+                    document.getElementById('nom-produit').innerText = "Produit non trouvé";
+                    document.getElementById('prix-produit').innerText = "N/A";
+                    document.getElementById('prix-produit').style.color = "red";
+                }
+                
+                document.getElementById('loading-area').style.display = 'none';
+                document.getElementById('content-area').style.display = 'block';
+            })
+            .catch(() => {
+                document.getElementById('loading-area').innerText = "Erreur de connexion";
+            });
+    }
+</script>
 </body>
 </html>
