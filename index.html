@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasyon Pri - Merancourt</title>
+</head>
+<body style="text-align: center; font-family: Arial, sans-serif; margin-top: 60px; background-color: #f4f6f9;">
+
+    <div style="max-width: 350px; margin: auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0px 10px 25px rgba(0,0,0,0.1);">
+        <h3 style="color: #8B4513; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">MERANCOURT</h3>
+        <p style="font-size: 12px; color: #777; margin-top: 0;">Sistèm Verifikasyon Pri</p>
+        <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 20px 0;">
+
+        <h1 id="nom-produit" style="color: #333; font-size: 24px; margin-bottom: 5px;">Chache pwodwi...</h1>
+        <p id="kod-produit" style="font-size: 14px; color: #999; margin-top: 0;">-</p>
+
+        <div style="background-color: #ebf7ee; padding: 15px; border-radius: 10px; margin: 25px 0;">
+            <h2 id="prix-produit" style="font-size: 45px; color: #27ae60; margin: 0;">-</h2>
+        </div>
+
+        <p style="font-size: 11px; color: #bbb; margin-top: 20px;">© Smart Lab Haiti - Pwofesyonèl</p>
+    </div>
+
+    <script>
+        // 1. Baz de done pwodwi yo (Ou ka ajoute kantite pwodwi ou vle la)
+        const BAZ_DE_DONE = {
+            "50946482972": { nom: "Chokola Merancourt", prix: "500 HTG" },
+            "50931299296": { nom: "Kafe Merancourt", prix: "350 HTG" }
+        };
+
+        // 2. Rekipere kòd ba ki nan URL la (Egzanp: ?code=50946482972)
+        const urlParams = new URLSearchParams(window.location.search);
+        const barcode = urlParams.get('code');
+
+        // 3. Afiche enfòmasyon yo sou ekran an
+        if (barcode && BAZ_DE_DONE[barcode]) {
+            document.getElementById('nom-produit').innerText = BAZ_DE_DONE[barcode].nom;
+            document.getElementById('kod-produit').innerText = "Kòd: " + barcode;
+            document.getElementById('prix-produit').innerText = BAZ_DE_DONE[barcode].prix;
+        } else {
+            document.getElementById('nom-produit').innerText = "Pwodwi sa a pa egziste";
+            document.getElementById('prix-produit').innerText = "N/A";
+            document.getElementById('prix-produit').style.color = "red";
+        }
+    </script>
+</body>
+</html>
