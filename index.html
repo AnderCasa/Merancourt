@@ -2,6 +2,10 @@
 <html lang="ht">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verifikasyon Pri - Merancourt</title>
 </head>
@@ -18,30 +22,58 @@
         <div style="background-color: #ebf7ee; padding: 15px; border-radius: 10px; margin: 25px 0;">
             <h2 id="prix-produit" style="font-size: 45px; color: #27ae60; margin: 0;">-</h2>
         </div>
-
-        <p style="font-size: 11px; color: #bbb; margin-top: 20px;">© Smart Lab Haiti - Pwofesyonèl</p>
-    </div>
-
     <script>
-        // 1. Baz de done pwodwi yo (Ou ka ajoute kantite pwodwi ou vle la)
-        const BAZ_DE_DONE = {
-            "50946482972": { nom: "Chokola Merancourt", prix: "500 HTG" },
-            "50931299296": { nom: "Kafe Merancourt", prix: "1000 HTG" }
-        };
+        // KOPYE EPI KOLE LYEN .CSV GOOGLE SHEET PA W LAN LA NAN MITAN APWOSTWOF YO:
+        const GOOGLE_SHEET_CSV_URL = https:'//docs.google.com/spreadsheets/d/e/2PACX-1vSz2w9MwD4sl9HUEAGulTEoerDOV6pKirCs_-6flmYaa_dR-pEZ0A97m_dS8hKNWSgbMWoSZASpJGZA/pub?output=csv';
 
-        // 2. Rekipere kòd ba ki nan URL la (Egzanp: ?code=50946482972)
+        // Rekipere kòd ba ki nan URL la
         const urlParams = new URLSearchParams(window.location.search);
-        const barcode = urlParams.get('code');
+        const barcodeParam = urlParams.get('code');
 
-        // 3. Afiche enfòmasyon yo sou ekran an
-        if (barcode && BAZ_DE_DONE[barcode]) {
-            document.getElementById('nom-produit').innerText = BAZ_DE_DONE[barcode].nom;
-            document.getElementById('kod-produit').innerText = "Kòd: " + barcode;
-            document.getElementById('prix-produit').innerText = BAZ_DE_DONE[barcode].prix;
-        } else {
-            document.getElementById('nom-produit').innerText = "Pwodwi sa a pa egziste";
-            document.getElementById('prix-produit').innerText = "N/A";
+        if (!barcodeParam) {
+            document.getElementById('nom-produit').innerText = "Kòd manke nan lyen an";
+            document.getElementById('prix-produit').innerText = "Erè";
             document.getElementById('prix-produit').style.color = "red";
+        } else {
+            // Al chache done yo an dirèk nan Google Sheet la
+            fetch(GOOGLE_SHEET_CSV_URL)
+                .then(response => response.text())
+                .then(csvText => {
+                    const lines = csvText.split('\n');
+                    let produitTrouve = null;
+
+                    // Sote premye liy lan (tèt kolòn yo), kòmanse nan i = 1
+                    for (let i = 1; i < lines.length; i++) {
+                        // Netwaye liy lan pou evite pwoblèm gilmè (quotes) Google mete yo
+                        const row = lines[i].replace(/"/g, '').split(',');
+                        
+                        if (row.length >= 3) {
+                            const currentBarcode = row[0].trim();
+                            if (currentBarcode === barcodeParam.trim()) {
+                                produitTrouve = {
+                                    nom: row[1].trim(),
+                                    prix: row[2].trim()
+                                };
+                                break;
+                            }
+                        }
+                    }
+
+                    // Afiche rezilta a
+                    if (produitTrouve) {
+                        document.getElementById('nom-produit').innerText = produitTrouve.nom;
+                        document.getElementById('kod-produit').innerText = "Kòd: " + barcodeParam;
+                        document.getElementById('prix-produit').innerText = produitTrouve.prix;
+                    } else {
+                        document.getElementById('nom-produit').innerText = "Pwodwi sa a pa egziste";
+                        document.getElementById('prix-produit').innerText = "N/A";
+                        document.getElementById('prix-produit').style.color = "red";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('nom-produit').innerText = "Erè Koneksyon Sèvè";
+                    console.error(err);
+                });
         }
     </script>
 </body>
